@@ -288,6 +288,20 @@
     padding: 5px;
   }
   
+  .voice-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    color: #8d6e63;
+    transition: color 0.2s ease;
+  }
+  
+  .voice-button:hover {
+    color: #6d4c41;
+  }
+  
+  /* Summarize Button */
   .summarize-button {
     width: 100%;
     padding: 15px;
@@ -329,4 +343,5 @@
       transform: rotate(30deg) translate(-5px, -10px);
     }
   }
+  
   
