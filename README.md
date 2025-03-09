@@ -14,5 +14,10 @@ source .venv/bin/activate
 pip install -q -U google-genai
 pip install python-dotenv
 
+pip install speechrecognition
+pip install gTTS
+pip install pyaudio
+
+
 ### Add the API key as
 KEY="YOUR_KEY"
