@@ -1,13 +1,14 @@
 from google import genai
 from dotenv import load_dotenv
 
+import os
+
 load_dotenv()
 
-client = genai.Client(api_key='KEY')
+client = genai.Client(api_key = os.getenv('KEY'))
 
 # This is the user input we're getting from somewhere else
 user_speech = "" # Change to test
-
 
 # Update the contents variable into a usable string
 prompt_modifier = ""
