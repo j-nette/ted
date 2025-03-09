@@ -25,5 +25,5 @@ def write_read(x: str):
   time.sleep(0.05) 
      
 while(True):
-  text = input("Enter action: ") # L - left, R - right, U - Both Up, D - Both Down
+  text = input("Enter action: ") # L - left up, R - right up, U - Both Up, D - Both Down, l - left down, r - right down
   write_read(text)
