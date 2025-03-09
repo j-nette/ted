@@ -220,6 +220,10 @@
           </div>
         </div>
       </div>
+      </div>
+
+      <!-- Summarize Conversation Button -->
+      <button class="summarize-button" id="summarize-button">Summarize Conversation</button>
     </div>
   </div>
   
@@ -269,6 +273,8 @@
       const micButton = document.getElementById('microphone-button');
       const backButton = document.getElementById('back-button');
       const transcriptionContainer = document.getElementById('transcription-container');
+      const summarizeButton = document.getElementById('summarize-button');
+
       const csrftoken = getCookie('csrftoken');
       
       let mediaRecorder;
@@ -319,6 +325,12 @@
         updateEyesPosition({ clientX: touch.clientX, clientY: touch.clientY });
       }, { passive: false });
   
+
+    // Redirect to summary view when the summarize button is clicked
+      summarizeButton.addEventListener('click', () => {
+        window.location.href = "{% url 'summarize_view' %}";
+      });
+
       // Request microphone access and set up recording
       async function setupMicrophone() {
 
