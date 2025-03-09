@@ -19,6 +19,8 @@ cmd-f 2025
 
 ``pip install python-dotenv``
 
+``pip install pyserial ``
+
 ### Add the API key
 Create a ``.env`` file. Add the following to the file:
 
