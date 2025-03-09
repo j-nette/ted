@@ -11,49 +11,49 @@ def chat_view(request):
     conversation = request.session.get("conversation", [])
     conversation_started = request.session.get("conversation_started", False)
     last_activity_iso = request.session.get("last_activity")
-    now = datetime.datetime.now()
+    # now = datetime.datetime.now()
 
     # Check for inactivity and generate summary if needed.
-    if last_activity_iso:
-        last_activity = datetime.datetime.fromisoformat(last_activity_iso)
-        if now - last_activity > INACTIVITY_THRESHOLD and conversation:
-            summary_prompt = (
-                "The conversation has ended due to inactivity. Based on the following transcript, provide a summary that includes:\n"
-                "- Mood of the day\n"
-                "- General trend of mood throughout the week\n"
-                "- A summary of the conversation\n\n"
-                "Transcript:\n" + "\n".join([msg["text"] for msg in conversation])
-            )
-            api_key = os.environ.get("GENAI_API_KEY")
-            if api_key:
-                try:
-                    client = genai.Client(api_key=api_key)
-                    response = client.models.generate_content(
-                        model="gemini-2.0-flash",
-                        contents=summary_prompt
-                    )
-                    summary_text = response.text
-                    conversation.append({'sender': 'bear', 'text': "Summary:\n" + summary_text})
-                except Exception as e:
-                    conversation.append({
-                        'sender': 'bear',
-                        'text': f"An error occurred while generating the summary: {e}"
-                    })
-            else:
-                conversation.append({
-                    'sender': 'bear',
-                    'text': "Error: No GENAI_API_KEY found. Please configure your environment."
-                })
-            # Clear conversation and reset conversation flag.
-            conversation = []
-            conversation_started = False
-            request.session["conversation"] = conversation
-            request.session["conversation_started"] = conversation_started
-            request.session["last_activity"] = now.isoformat()
-            return render(request, 'chat.html', {'messages': conversation})
+    # if last_activity_iso:
+    #     last_activity = datetime.datetime.fromisoformat(last_activity_iso)
+    #     if now - last_activity > INACTIVITY_THRESHOLD and conversation:
+    #         summary_prompt = (
+    #             "The conversation has ended due to inactivity. Based on the following transcript, provide a summary that includes:\n"
+    #             "- Mood of the day\n"
+    #             "- General trend of mood throughout the week\n"
+    #             "- A summary of the conversation\n\n"
+    #             "Transcript:\n" + "\n".join([msg["text"] for msg in conversation])
+    #         )
+    #         api_key = os.environ.get("GENAI_API_KEY")
+    #         if api_key:
+    #             try:
+    #                 client = genai.Client(api_key=api_key)
+    #                 response = client.models.generate_content(
+    #                     model="gemini-2.0-flash",
+    #                     contents=summary_prompt
+    #                 )
+    #                 summary_text = response.text
+    #                 conversation.append({'sender': 'bear', 'text': "Summary:\n" + summary_text})
+    #             except Exception as e:
+    #                 conversation.append({
+    #                     'sender': 'bear',
+    #                     'text': f"An error occurred while generating the summary: {e}"
+    #                 })
+    #         else:
+    #             conversation.append({
+    #                 'sender': 'bear',
+    #                 'text': "Error: No GENAI_API_KEY found. Please configure your environment."
+    #             })
+    #         # Clear conversation and reset conversation flag.
+    #         conversation = []
+    #         conversation_started = False
+    #         request.session["conversation"] = conversation
+    #         request.session["conversation_started"] = conversation_started
+    #         request.session["last_activity"] = now.isoformat()
+    #         return render(request, 'chat.html', {'messages': conversation})
 
     if request.method == 'POST':
-        user_message = request.POST.get('user_message', '')
+        user_message = request.POST.get('user_message', 'Give me food')
 
         # If conversation hasn't started, enforce the trigger phrase.
         if not conversation_started:
@@ -72,17 +72,17 @@ def chat_view(request):
         # Append the user's message.
         conversation.append({'sender': 'user', 'text': user_message})
         # Update last activity timestamp.
-        request.session["last_activity"] = now.isoformat()
+        # request.session["last_activity"] = now.isoformat()
 
         # Create an engineered prompt for Gemini.
         engineered_prompt = (
             """You are Ted, a friendly, empathetic therapy teddy bear. 
-You help the user organize their thoughts and track their emotional trends. 
-You converse naturally, asking clarifying questions if needed, and providing empathetic responses.
-At the end of the conversation, summarize the user based on what they said by: 
-- mood of the day
-- general trend of mood throughout the week
-- the conversation
+            You help the user organize their thoughts and track their emotional trends. 
+            You converse naturally, asking clarifying questions if needed, and providing empathetic responses.
+            At the end of the conversation, summarize the user based on what they said by: 
+            - mood of the day
+            - general trend of mood throughout the week
+            - the conversation
             """
         )
         full_prompt = engineered_prompt + "\nUser: " + user_message + "\nTed:"
