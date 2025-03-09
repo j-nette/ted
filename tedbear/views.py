@@ -10,6 +10,32 @@ from pydub import AudioSegment
 def home_view(request):
     return render(request, 'home.html')
 
+def send_prompt_to_ai(prompt):
+    # Build the prompt for the AI.
+    engineered_prompt = (
+        "You are Ted, a friendly, empathetic therapy stuffed teddy bear. Please do not provide any actions, like asterisk actions. "
+        "Your role is to help users organize their thoughts, track their emotions, and provide a safe space for them to express themselves. "
+        "Respond with empathy, ask clarifying questions, and avoid giving medical advice. "
+        "If the user seems to be in distress, gently encourage them to seek professional help."
+    )
+    full_prompt = engineered_prompt + "\nUser: " + prompt + "\nTed:"
+
+    api_key = os.environ.get("GENAI_API_KEY")
+
+    if not api_key:
+        return "Error: No GENAI_API_KEY found. Please configure your environment."
+    else:
+        try:
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=full_prompt
+            )
+            return response.text
+
+        except Exception as e:
+            return "An error occurred while communicating with Gemini."
+
 def chat_view(request):
     # Initialize the conversation from the session if it exists, otherwise start with an empty list.
     conversation = request.session.get('conversation', [])
@@ -20,38 +46,12 @@ def chat_view(request):
         user_message = request.POST.get('user_message', '')
         conversation.append({'sender': 'user', 'text': user_message})
 
-        # Build the prompt for the AI.
-        engineered_prompt = (
-            "You are Ted, a friendly, empathetic therapy stuffed teddy bear. Please do not provide any actions, like asterisk actions. "
-            "Your role is to help users organize their thoughts, track their emotions, and provide a safe space for them to express themselves. "
-            "Respond with empathy, ask clarifying questions, and avoid giving medical advice. "
-            "If the user seems to be in distress, gently encourage them to seek professional help."
-        )
-        full_prompt = engineered_prompt + "\nUser: " + user_message + "\nTed:"
+        resp = send_prompt_to_ai(user_message)
 
-        api_key = os.environ.get("GENAI_API_KEY")
-        if not api_key:
-            conversation.append({
-                'sender': 'bear',
-                'text': "Error: No GENAI_API_KEY found. Please configure your environment."
-            })
-        else:
-            try:
-                client = genai.Client(api_key=api_key)
-                response = client.models.generate_content(
-                    model="gemini-2.0-flash",
-                    contents=full_prompt
-                )
-                ai_response = response.text
-                conversation.append({'sender': 'bear', 'text': ai_response})
-            except Exception as e:
-                conversation.append({
-                    'sender': 'bear',
-                    'text': f"An error occurred while communicating with Gemini: {e}"
-                })
+        conversation.append({'sender': 'bear', 'text': resp})
 
         # Save the updated conversation to the session.
-        request.session['conversation'] = conversation
+        # request.session['conversation'] = conversation
 
         # Return JSON so that your JavaScript can process it.
         return JsonResponse({'messages': conversation})
@@ -102,51 +102,109 @@ def summarize_view(request):
         'summary': summary_text
     })
 
-def voice_view(request):
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Retrieve the uploaded audio file from the request.
-        audio_file = request.FILES.get('audio')
-        if not audio_file:
-            return JsonResponse({'error': 'No audio file provided.'}, status=400)
-        
-        # Save the uploaded file to a temporary location.
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".tmp") as temp_file:
-            for chunk in audio_file.chunks():
-                temp_file.write(chunk)
-            temp_file_path = temp_file.name
 
-        # If the file is not already WAV, convert it using pydub.
-        if not audio_file.name.lower().endswith('.wav'):
+
+
+from dotenv import load_dotenv
+import time
+import os
+import speech_recognition as sr
+from gtts import gTTS
+from mutagen.mp3 import MP3
+import subprocess
+
+load_dotenv()
+
+audio_file_path = "./response.mp3"
+
+def get_length():
+    audio = MP3(audio_file_path)
+    length = audio.info.length + 1  # extra second as a buffer (waiting for file to load)
+    return length
+
+def speech_to_text():
+
+
+    print("HELLO")
+
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as mic:
+        print("Listening...")
+        recognizer.adjust_for_ambient_noise(mic)  # Adjusts for ambient noise level
+        last_speech_time = time.time()  # Track the time of the last speech input
+        user_speech = ""  # Initialize user_speech as an empty string
+        
+        while True:
             try:
-                audio = AudioSegment.from_file(temp_file_path)
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as wav_temp:
-                    audio.export(wav_temp.name, format="wav")
-                    temp_audio_path = wav_temp.name
-            except Exception as e:
-                os.remove(temp_file_path)
-                return JsonResponse({'error': f'Error converting audio: {e}'}, status=500)
-            finally:
-                os.remove(temp_file_path)
-        else:
-            temp_audio_path = temp_file_path
+                # Listen for speech (timeout of 1 second)
+                audio = recognizer.listen(mic, timeout=1)
+                print("Heard something...")
 
-        recognizer = sr.Recognizer()
-        try:
-            # Open the temporary audio file using SpeechRecognition.
-            with sr.AudioFile(temp_audio_path) as source:
-                audio_data = recognizer.record(source)
-            # Use Google’s free recognition API.
-            transcription = recognizer.recognize_google(audio_data)
-        except sr.UnknownValueError:
-            transcription = "Sorry, I could not understand the audio."
-        except sr.RequestError as e:
-            transcription = f"Could not request results from the speech recognition service; {e}"
-        finally:
-            # Clean up the temporary WAV file.
-            if os.path.exists(temp_audio_path):
-                os.remove(temp_audio_path)
+                try:
+                    # Attempt to recognize the speech and append it to the existing user_speech
+                    recognized_text = recognizer.recognize_google(audio)
+                    print("Me: ", recognized_text)
+                    user_speech += " " + recognized_text  # Append recognized speech
+                    last_speech_time = time.time()  # Update last speech time
+                except sr.UnknownValueError:
+                    pass  # Ignore unrecognized speech
+                except sr.RequestError as e:
+                    print(f"Error with speech recognition service: {e}")
+                    break
+                
+                # Check if there is silence for more than 5 seconds
+                if time.time() - last_speech_time > 5:
+                    print("Silence detected, stopping listen...")
+                    break
+
+            except sr.WaitTimeoutError:
+                # If no speech is detected during the listen timeout
+                if time.time() - last_speech_time > 5:
+                    print("Silence detected, stopping listen...")
+                    break
+                continue
+
+        return user_speech if user_speech else None
+
+def text_to_speech(text: str):
+    print("Ted: ", text)
+    speaker = gTTS(text=text, lang="en", slow=False, tld="ca")
+
+    # Store, open, and cleanup temporary audio file
+    speaker.save(audio_file_path)
+
+    # Cross-platform solution for playing the audio file
+    if os.name == 'nt':  # For Windows
+        audio_process = subprocess.Popen(["start", audio_file_path], shell=True)
+    elif os.name == 'posix':  # For macOS or Linux
+        audio_process = subprocess.Popen(["mpg321", audio_file_path])
+
+    # Wait for the audio to finish playing before continuing
+    time.sleep(get_length())  # Adjust the sleep time based on the audio length
+    if audio_process.poll() is None:
+        audio_process.terminate()
+        audio_process.wait()
+
+    # Clean up the audio file after playing
+    os.remove(audio_file_path)
+
+
+
+import os
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
+    
+def voice_view(request):
+
+    print("HELLO 1")
+
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+
+        transcription = speech_to_text()
+        res = send_prompt_to_ai(transcription)
         
-        return JsonResponse({'transcription': transcription})
+        return JsonResponse({'response': res})
     else:
         # For GET requests, render your voice chat template.
         return render(request, 'voice.html')

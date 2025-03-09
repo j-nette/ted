@@ -321,76 +321,51 @@
   
       // Request microphone access and set up recording
       async function setupMicrophone() {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          mediaRecorder = new MediaRecorder(stream);
-          
-          mediaRecorder.onstart = function() {
-            audioChunks = [];
-            transcriptionContainer.innerHTML = '<p>Listening...</p>';
-          };
-  
-          mediaRecorder.ondataavailable = function(e) {
-            audioChunks.push(e.data);
-          };
-          
-          mediaRecorder.onstop = function() {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            const formData = new FormData();
-            formData.append('audio', audioBlob, 'recording.wav');
-  
-            transcriptionContainer.innerHTML = '<p>Processing...</p>';
-            
-            fetch("{% url 'voice_view' %}", {
-              method: 'POST',
-              headers: {
-                'X-CSRFToken': csrftoken,
-                'X-Requested-With': 'XMLHttpRequest'
-              },
-              body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-              if (data.transcription) {
-                transcriptionContainer.innerHTML = `<p>"${data.transcription}"</p>`;
-                
-                // If there's a response from Ted, display it
-                if (data.response) {
-                  setTimeout(() => {
-                    transcriptionContainer.innerHTML += `<p class="ted-response">${data.response}</p>`;
-                  }, 1000);
-                }
-              } else {
-                transcriptionContainer.innerHTML = '<p>I couldn\'t understand that. Please try again.</p>';
-              }
-            })
-            .catch(err => {
-              console.error('Error:', err);
-              transcriptionContainer.innerHTML = '<p>Something went wrong. Please try again.</p>';
-            });
-          };
-  
-          return true;
-        } catch (err) {
-          console.error('Error accessing microphone:', err);
-          transcriptionContainer.innerHTML = '<p>Could not access microphone. Please check your permissions.</p>';
-          return false;
+
+         try {
+          const response = await fetch("{% url 'voice_view' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',  // Specify content type
+                'X-CSRFToken': getCookie('csrftoken'),  // Handle CSRF token if necessary
+                'X-Requested-With': 'XMLHttpRequest'  // Indicate that this is an AJAX request
+            }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(data);
+
+            // Perform actions for successful response
+            if (data.response) {
+              setTimeout(() => {
+                transcriptionContainer.innerHTML += `<p class="ted-response">${data.response}</p>`;
+              }, 1000);
+            } else {
+              transcriptionContainer.innerHTML = '<p>I couldn\'t understand that. Please try again.</p>';
+            }
+          } else {
+            console.error('Error with response:', response.statusText);
+          }
+        } catch (error) {
+          console.error('Error during fetch:', error);
+          transcriptionContainer.innerHTML = '<p>I couldn\'t understand that. Please try again.</p>';
         }
+  
+        return true;
       }
   
       // Toggle recording state
       async function toggleRecording() {
-        if (!mediaRecorder) {
-          const setup = await setupMicrophone();
-          if (!setup) return;
-        }
+        
+        transcriptionContainer.innerHTML = '<p>Listening...</p>';
+        const setup = await setupMicrophone();
+        if (!setup) return;
   
         if (!isRecording) {
-          mediaRecorder.start();
           phoneContainer.classList.add('listening');
           micButton.querySelector('.microphone-icon').style.backgroundColor = '#ff4444';
         } else {
-          mediaRecorder.stop();
           phoneContainer.classList.remove('listening');
           micButton.querySelector('.microphone-icon').style.backgroundColor = '#8d6e63';
         }
