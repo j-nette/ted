@@ -14,12 +14,6 @@ load_dotenv()
 
 client = genai.Client(api_key = os.getenv('KEY'))
 
-# This is the user input we're getting from somewhere else
-user_speech = "" # Change to test
-
-# Update the contents variable into a usable string
-prompt_modifier = ""
-
 
 audio_file_path = "./response.mp3"
 
@@ -64,7 +58,10 @@ def text_to_speech(text: str):
 
 
 
-listen = speech_to_text()
-if listen is not False:
-    text_to_speech(listen)
+user_speech = speech_to_text()
+if user_speech is not False:
+    text_to_speech(user_speech)
 
+
+# Update the contents variable into a usable string
+prompt_modifier = ""
