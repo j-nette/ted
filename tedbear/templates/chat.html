@@ -397,7 +397,6 @@
           })
           .then(response => response.json())
           .then(data => {
-            // Clear messages and repopulate using the returned conversation
             messagesDiv.innerHTML = '';
             data.messages.forEach(msg => {
               appendMessage(msg.sender, msg.text);
