@@ -1,0 +1,347 @@
+/* Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+      "Helvetica Neue", sans-serif;
+  }
+  
+  body {
+    background-color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  
+  .title {
+    color: #999;
+    margin-bottom: 15px;
+    font-size: 24px;
+    font-weight: normal;
+  }
+  
+  .phone-container {
+    width: 320px;
+    height: 640px;
+    background-color: white;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+  }
+  
+  /* Status Bar */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background-color: #f5d6b3;
+  }
+  
+  .time {
+    font-weight: bold;
+  }
+  
+  .icons {
+    display: flex;
+    gap: 5px;
+  }
+  
+  /* Chat Container & Decorative Elements */
+  .chat-container {
+    flex: 1;
+    padding: 20px;
+    padding-top: 160px; /* Add padding to accommodate the fixed bear */
+    overflow-y: auto;
+    position: relative;
+  }
+  
+  .decorative-shape {
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 200px;
+    height: 200px;
+    background-color: #f5d6b3;
+    border-radius: 50%;
+    z-index: 5; /* Below the bear but above messages */
+  }
+  
+  .decorative-shape-2 {
+    position: absolute;
+    top: -100px;
+    left: -20px;
+    width: 150px;
+    height: 150px;
+    background-color: #f5d6b3;
+    opacity: 0.7;
+    border-radius: 50%;
+    z-index: 5; /* Below the bear but above messages */
+  }
+  
+  /* Bear & Eye Styles */
+  .bear {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    z-index: 10; /* Ensure bear is above other elements */
+  }
+  
+  .bear-head {
+    width: 100%;
+    height: 100%;
+    background-color: #8d6e63;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .bear-ear-left,
+  .bear-ear-right {
+    width: 35px;
+    height: 35px;
+    background-color: #8d6e63;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+  }
+  
+  .bear-ear-left {
+    left: 10px;
+  }
+  
+  .bear-ear-right {
+    right: 10px;
+  }
+  
+  .bear-ear-inner-left,
+  .bear-ear-inner-right {
+    width: 20px;
+    height: 20px;
+    background-color: #e6b17e;
+    border-radius: 50%;
+    position: absolute;
+    top: 7px;
+    left: 7px;
+  }
+  
+  .bear-muzzle {
+    width: 60px;
+    height: 50px;
+    background-color: #e6b17e;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 25px;
+  }
+  
+  .bear-nose {
+    width: 18px;
+    height: 12px;
+    background-color: #000;
+    border-radius: 50%;
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .bear-mouth {
+    width: 30px;
+    height: 15px;
+    border-bottom: 3px solid #000;
+    border-radius: 50%;
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all 0.3s ease;
+  }
+  
+  .eyes-container {
+    position: absolute;
+    width: 100%;
+    top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    z-index: 2;
+  }
+  
+  .bear-eye-left,
+  .bear-eye-right {
+    width: 20px;
+    height: 20px;
+    background-color: #000;
+    border-radius: 50%;
+    position: relative;
+    transition: transform 0.1s ease-out;
+  }
+  
+  /* Bear Paw Styles */
+  .bear-paw {
+    width: 40px;
+    height: 35px;
+    background-color: #8d6e63;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    position: absolute;
+    bottom: -30px;
+    right: 0;
+    transform: rotate(30deg);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 3;
+  }
+  
+  /* Add paw pads */
+  .bear-paw::before {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 15px;
+    background-color: #e6b17e;
+    border-radius: 50%;
+    bottom: 5px;
+    left: 10px;
+  }
+  
+  /* Add small paw digits */
+  .bear-paw::after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background-color: #e6b17e;
+    border-radius: 50%;
+    top: 5px;
+    left: 8px;
+    box-shadow: 12px 0 0 #e6b17e, 24px 0 0 #e6b17e;
+  }
+  
+  /* Message Styles */
+  .messages {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 10px;
+  }
+  
+  .message {
+    max-width: 80%;
+    padding: 12px 16px;
+    margin: 8px 0;
+    border-radius: 20px;
+    position: relative;
+    z-index: 1;
+    word-wrap: break-word;
+  }
+  
+  .message.ted {
+    background-color: #8d6e63;
+    color: white;
+    align-self: flex-start;
+    margin-right: auto;
+  }
+  
+  .message.user {
+    background-color: #f5d6b3;
+    color: black;
+    align-self: flex-end;
+    margin-left: auto;
+  }
+  
+  /* Input Area */
+  .input-container {
+    padding: 15px;
+    background-color: #f5d6b3;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .chat-input {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 20px;
+    background-color: white;
+    font-size: 16px;
+    outline: none;
+  }
+  
+  .send-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+  }
+  
+  .voice-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    color: #8d6e63;
+    transition: color 0.2s ease;
+  }
+  
+  .voice-button:hover {
+    color: #6d4c41;
+  }
+  
+  /* Summarize Button */
+  .summarize-button {
+    width: 100%;
+    padding: 15px;
+    background-color: #8d6e63;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    z-index: 1;
+  }
+  
+  /* Bear "Thinking" State */
+  .thinking .bear-mouth {
+    width: 20px;
+    height: 10px;
+    border-radius: 0;
+    transform: rotate(-10deg) translateX(-50%);
+  }
+  
+  /* Show paw when thinking */
+  .thinking .bear-paw {
+    opacity: 1;
+    transform: rotate(30deg) translate(-5px, -10px);
+    animation: pawWave 1.5s infinite;
+  }
+  
+  /* Paw waving animation */
+  @keyframes pawWave {
+    0% {
+      transform: rotate(30deg) translate(-5px, -10px);
+    }
+    50% {
+      transform: rotate(15deg) translate(-10px, -5px);
+    }
+    100% {
+      transform: rotate(30deg) translate(-5px, -10px);
+    }
+  }
+  
+  

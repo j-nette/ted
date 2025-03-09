@@ -1,26 +1,265 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Chat with Ted</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat with Ted</title>
+  <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+  <script>
+    function updateTime() {
+        const timeElement = document.getElementById('current-time');
+        const now = new Date();
+
+        // Format hours and minutes
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        
+        // Get AM/PM
+        const ampm = hours >= 12 ? 'pm' : 'am';
+
+        // Convert to 12-hour format
+        hours = hours % 12;
+        hours = hours ? hours : 12; // Handle midnight (0 should be 12)
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+
+        // Display the time with AM/PM (e.g., "9:30 pm")
+        timeElement.textContent = `${hours}:${minutes} ${ampm}`;
+    }
+
+  </script>
+ 
 </head>
 <body>
-    <h1>Chat with Ted</h1>
+  <div>
+    <h1 class="title">Chat with Ted</h1>
+    <div class="phone-container" id="phone-container">
+      <div class="status-bar">
+        <div class="time" id="current-time">9:30 pm</div>
 
-    <div id="chat-box" style="border:1px solid #ccc; padding:10px; width:400px;">
-        {% for message in messages %}
-            {% if message.sender == 'bear' %}
-                <p><strong>Ted:</strong> {{ message.text }}</p>
-            {% else %}
-                <p><strong>You:</strong> {{ message.text }}</p>
-            {% endif %}
-        {% endfor %}
+        <div class="icons">
+          <!-- Include your SVG icons here -->
+          <div class="signal">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M4 16L4 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+              <path d="M8 12L8 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+              <path d="M12 8L12 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+              <path d="M16 4L16 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="wifi">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 19.5H12.01" stroke="black" stroke-width="3" stroke-linecap="round"/>
+              <path d="M8 15C9.06087 13.9391 10.5304 13.3258 12 13.3258C13.4696 13.3258 14.9391 13.9391 16 15" stroke="black" stroke-width="2" stroke-linecap="round"/>
+              <path d="M4 11C6.38695 8.61305 9.53912 7.32581 12 7.32581C14.4609 7.32581 17.613 8.61305 20 11" stroke="black" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="battery">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="7" width="18" height="10" rx="2" stroke="black" stroke-width="2"/>
+              <path d="M20 11H22V13H20V11Z" fill="black"/>
+              <rect x="4" y="9" width="14" height="6" fill="black"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chat-container">
+        <div class="decorative-shape"></div>
+        <div class="decorative-shape-2"></div>
+        
+        <!-- Bear Animation Container - moved outside the scrollable area -->
+        <div class="bear" id="bear-container">
+          <div class="bear-head">
+            <div class="bear-ear-left">
+              <div class="bear-ear-inner-left"></div>
+            </div>
+            <div class="bear-ear-right">
+              <div class="bear-ear-inner-right"></div>
+            </div>
+            <div class="bear-muzzle">
+              <div class="bear-nose"></div>
+              <div class="bear-mouth"></div>
+            </div>
+            <div class="eyes-container">
+              <div class="bear-eye-left" id="eye-left"></div>
+              <div class="bear-eye-right" id="eye-right"></div>
+            </div>
+          </div>
+          <!-- Added bear paw that shows when thinking -->
+          <div class="bear-paw"></div>
+        </div>
+
+        <!-- Messages rendered via Django context -->
+        <div class="messages" id="messages">
+          {% for msg in messages %}
+            <div class="message {% if msg.sender == 'user' %}user{% else %}ted{% endif %}">
+              {{ msg.text }}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="input-container">
+        <input type="text" class="chat-input" id="chat-input" placeholder="Type your message...">
+        <button class="voice-button" id="voice-button" title="Switch to voice chat">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+        <button class="send-button" id="send-button">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2L11 13"/>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Summarize Conversation Button -->
+      <button class="summarize-button" id="summarize-button">Summarize Conversation</button>
     </div>
+  </div>
 
-    <form method="POST" style="margin-top: 20px;">
-        {% csrf_token %}
-        <input type="text" name="user_message" placeholder="Type your message..." required>
-        <button type="submit">Send</button>
-    </form>
+  <script>
+    // CSRF helper function
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      console.log("@@@ " + cookieValue)
+      return cookieValue;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const phoneContainer = document.getElementById('phone-container');
+      const bearContainer = document.getElementById('bear-container');
+      const eyeLeft = document.getElementById('eye-left');
+      const eyeRight = document.getElementById('eye-right');
+      const messagesDiv = document.getElementById('messages');
+      const chatInput = document.getElementById('chat-input');
+      const sendButton = document.getElementById('send-button');
+      const summarizeButton = document.getElementById('summarize-button');
+
+      // Update the time when the page loads
+      updateTime();
+      
+      // Update the time every minute
+      setInterval(updateTime, 60000);
+
+      // Calculate bear center relative to phone container
+      const getBearPosition = () => {
+        const bearRect = bearContainer.getBoundingClientRect();
+        const phoneRect = phoneContainer.getBoundingClientRect();
+        return {
+          x: bearRect.left + bearRect.width / 2 - phoneRect.left,
+          y: bearRect.top + bearRect.height / 2 - phoneRect.top
+        };
+      };
+
+      // Eye movement logic
+      const maxEyeMove = 3;
+      const updateEyesPosition = (e) => {
+        const phoneRect = phoneContainer.getBoundingClientRect();
+        const cursorX = e.clientX - phoneRect.left;
+        const cursorY = e.clientY - phoneRect.top;
+        if (cursorX >= 0 && cursorX <= phoneRect.width && cursorY >= 0 && cursorY <= phoneRect.height) {
+          const bearPos = getBearPosition();
+          const dirX = cursorX - bearPos.x;
+          const dirY = cursorY - bearPos.y;
+          const distance = Math.sqrt(dirX * dirX + dirY * dirY);
+          if (distance === 0) return;
+          const normX = dirX / distance;
+          const normY = dirY / distance;
+          const moveX = normX * Math.min(distance * 0.05, maxEyeMove);
+          const moveY = normY * Math.min(distance * 0.05, maxEyeMove);
+          eyeLeft.style.transform = `translate(${moveX}px, ${moveY}px)`;
+          eyeRight.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        }
+      };
+
+      document.addEventListener('mousemove', updateEyesPosition);
+      document.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        updateEyesPosition({ clientX: touch.clientX, clientY: touch.clientY });
+      }, { passive: false });
+
+      // Append message to chat
+      function appendMessage(sender, text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message ' + (sender === 'user' ? 'user' : 'ted');
+        msgDiv.textContent = text;
+        messagesDiv.appendChild(msgDiv);
+      }
+
+      // Send message via AJAX and toggle "thinking" state
+      function sendMessage() {
+        const text = chatInput.value.trim();
+        if (text) {
+          appendMessage('user', text);
+          chatInput.value = '';
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+          
+          // Add "thinking" state to animate Ted while waiting for a reply
+          phoneContainer.classList.add('thinking');
+          
+          const formData = new FormData();
+          formData.append('user_message', text);
+
+          fetch("{% url 'chat_view' %}", {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken'),
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            phoneContainer.classList.remove('thinking');
+            messagesDiv.innerHTML = '';
+            data.messages.forEach(msg => {
+              appendMessage(msg.sender, msg.text);
+            });
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            phoneContainer.classList.remove('thinking');
+          });
+        }
+      }
+
+      sendButton.addEventListener('click', sendMessage);
+      chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+
+      // Redirect to summary view when the summarize button is clicked
+      summarizeButton.addEventListener('click', () => {
+        window.location.href = "{% url 'summarize_view' %}";
+      });
+
+      // Navigate to voice chat when the voice button is clicked
+      const voiceButton = document.getElementById('voice-button');
+      voiceButton.addEventListener('click', () => {
+        window.location.href = "{% url 'voice_view' %}";
+      });
+    });
+  </script>
 </body>
 </html>
+

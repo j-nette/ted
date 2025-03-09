@@ -16,12 +16,15 @@ cmd-f 2025
 
 ### Install the following packages
 ``pip install -q -U google-genai``
-
 ``pip install python-dotenv``
+``pip install speechrecognition``
+``pip install gTTS``
+``pip install pyaudio``
 
 ``pip install pyserial ``
 
 ### Add the API key
 Create a ``.env`` file. Add the following to the file:
 
+### Add the API key as
 KEY="YOUR_KEY"

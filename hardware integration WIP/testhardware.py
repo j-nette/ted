@@ -6,7 +6,31 @@ from gtts import gTTS
 from mutagen.mp3 import MP3
 import subprocess
 
+import serial
+import serial.tools.list_ports
+
 load_dotenv()
+
+def write_read(x: str): 
+  serialData.write(bytes(x, 'utf-8')) 
+  time.sleep(0.05) 
+
+try:
+    board_ports = [p.device
+      for p in serial.tools.list_ports.comports()
+      if 'CH340' in p.description 
+    ]
+    
+    if not board_ports:
+        raise IOError("No board found.")
+
+    ser = board_ports[0] # take first board if multiple?
+
+    serialData = serial.Serial(port=ser, baudrate=9600, timeout=2)
+    
+except(serial.SerialException):
+  print(serial.SerialException)
+  print("Port in use - close other serial monitors.")
 
 audio_file_path = "./response.mp3"
 
@@ -28,6 +52,7 @@ def speech_to_text():
                 # Listen for speech (timeout of 1 second)
                 audio = recognizer.listen(mic, timeout=1)
                 print("Heard something...")
+                write_read('U')
 
                 try:
                     # Attempt to recognize the speech and append it to the existing user_speech
@@ -44,12 +69,14 @@ def speech_to_text():
                 # Check if there is silence for more than 5 seconds
                 if time.time() - last_speech_time > 1:
                     print("Silence detected, stopping listen...")
+                    write_read('D')
                     break
 
             except sr.WaitTimeoutError:
                 # If no speech is detected during the listen timeout
                 if time.time() - last_speech_time > 2:
                     print("Silence detected, stopping listen...")
+                    write_read('D')
                     break
                 continue
 
