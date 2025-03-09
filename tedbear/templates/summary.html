@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation Summary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .title {
+            color: #999;
+            margin-bottom: 15px;
+            font-size: 24px;
+            font-weight: normal;
+        }
+
+        .phone-container {
+            width: 320px;
+            height: 640px;
+            background-color: white;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background-color: #f5d6b3;
+        }
+
+        .time {
+            font-weight: bold;
+        }
+
+        .icons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .summary-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .summary-content {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .back-button {
+            width: 100%;
+            padding: 15px;
+            background-color: #8d6e63;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1 class="title">Conversation Summary</h1>
+        <div class="phone-container">
+            <div class="status-bar">
+                <div class="time">9:30 PM</div>
+                <div class="icons">
+                    <div class="signal">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 16L4 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M8 12L8 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M12 8L12 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M16 4L16 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="wifi">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 19.5H12.01" stroke="black" stroke-width="3" stroke-linecap="round"/>
+                            <path d="M8 15C9.06087 13.9391 10.5304 13.3258 12 13.3258C13.4696 13.3258 14.9391 13.9391 16 15" stroke="black" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M4 11C6.38695 8.61305 9.53912 7.32581 12 7.32581C14.4609 7.32581 17.613 8.61305 20 11" stroke="black" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="battery">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="7" width="18" height="10" rx="2" stroke="black" stroke-width="2"/>
+                            <path d="M20 11H22V13H20V11Z" fill="black"/>
+                            <rect x="4" y="9" width="14" height="6" fill="black"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-container">
+                <div class="summary-content">
+                    <p>{{ summary|linebreaks }}</p>
+                </div>
+
+                <button class="back-button" onclick="window.location.href='{% url 'chat_view' %}'">Back to Chat</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

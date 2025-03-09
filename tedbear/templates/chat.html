@@ -1,26 +1,427 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Chat with Ted</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat with Ted</title>
+  <style>
+    /* CSS Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    body {
+      background-color: #1a1a1a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .title {
+      color: #999;
+      margin-bottom: 15px;
+      font-size: 24px;
+      font-weight: normal;
+    }
+    .phone-container {
+      width: 320px;
+      height: 640px;
+      background-color: white;
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 15px;
+      background-color: #f5d6b3;
+    }
+    .time {
+      font-weight: bold;
+    }
+    .icons {
+      display: flex;
+      gap: 5px;
+    }
+    .chat-container {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      position: relative;
+    }
+    .decorative-shape {
+      position: absolute;
+      top: -50px;
+      left: -50px;
+      width: 200px;
+      height: 200px;
+      background-color: #f5d6b3;
+      border-radius: 50%;
+      z-index: 0;
+    }
+    .decorative-shape-2 {
+      position: absolute;
+      top: -100px;
+      left: -20px;
+      width: 150px;
+      height: 150px;
+      background-color: #f5d6b3;
+      opacity: 0.7;
+      border-radius: 50%;
+      z-index: 0;
+    }
+    .bear {
+      width: 120px;
+      height: 120px;
+      margin: 20px auto;
+      position: relative;
+      z-index: 1;
+    }
+    .bear-head {
+      width: 100%;
+      height: 100%;
+      background-color: #8d6e63;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .bear-ear-left, .bear-ear-right {
+      width: 35px;
+      height: 35px;
+      background-color: #8d6e63;
+      border-radius: 50%;
+      position: absolute;
+      top: 0;
+    }
+    .bear-ear-left {
+      left: 10px;
+    }
+    .bear-ear-right {
+      right: 10px;
+    }
+    .bear-ear-inner-left, .bear-ear-inner-right {
+      width: 20px;
+      height: 20px;
+      background-color: #e6b17e;
+      border-radius: 50%;
+      position: absolute;
+      top: 7px;
+      left: 7px;
+    }
+    .bear-muzzle {
+      width: 60px;
+      height: 50px;
+      background-color: #e6b17e;
+      border-radius: 50%;
+      position: absolute;
+      bottom: 25px;
+    }
+    .bear-nose {
+      width: 18px;
+      height: 12px;
+      background-color: #000;
+      border-radius: 50%;
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .bear-mouth {
+      width: 30px;
+      height: 15px;
+      border-bottom: 3px solid #000;
+      border-radius: 50%;
+      position: absolute;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .eyes-container {
+      position: absolute;
+      width: 100%;
+      top: 40px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      z-index: 2;
+    }
+    .bear-eye-left, .bear-eye-right {
+      width: 20px;
+      height: 20px;
+      background-color: #000;
+      border-radius: 50%;
+      position: relative;
+      transition: transform 0.1s ease-out;
+    }
+    .message {
+      max-width: 80%;
+      padding: 12px 16px;
+      margin: 8px 0;
+      border-radius: 20px;
+      position: relative;
+      z-index: 1;
+      word-wrap: break-word;
+    }
+    .message.ted {
+      background-color: #8d6e63;
+      color: white;
+      align-self: flex-start;
+      margin-right: auto;
+    }
+    .message.user {
+      background-color: #f5d6b3;
+      color: black;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    .messages {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .input-container {
+      padding: 15px;
+      background-color: #f5d6b3;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 20px;
+      background-color: white;
+      font-size: 16px;
+      outline: none;
+    }
+    .send-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+    }
+    .summarize-button {
+      width: 100%;
+      padding: 15px;
+      background-color: #8d6e63;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      z-index: 1;
+    }
+  </style>
 </head>
 <body>
-    <h1>Chat with Ted</h1>
+  <div>
+    <h1 class="title">Chat with Ted</h1>
+    <div class="phone-container" id="phone-container">
+      <div class="status-bar">
+        <div class="time">9:30 PM</div>
+        <div class="icons">
+          <div class="signal">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 16L4 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+              <path d="M8 12L8 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+              <path d="M12 8L12 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+              <path d="M16 4L16 20" stroke="black" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="wifi">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 19.5H12.01" stroke="black" stroke-width="3" stroke-linecap="round"/>
+              <path d="M8 15C9.06087 13.9391 10.5304 13.3258 12 13.3258C13.4696 13.3258 14.9391 13.9391 16 15" stroke="black" stroke-width="2" stroke-linecap="round"/>
+              <path d="M4 11C6.38695 8.61305 9.53912 7.32581 12 7.32581C14.4609 7.32581 17.613 8.61305 20 11" stroke="black" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="battery">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="7" width="18" height="10" rx="2" stroke="black" stroke-width="2"/>
+              <path d="M20 11H22V13H20V11Z" fill="black"/>
+              <rect x="4" y="9" width="14" height="6" fill="black"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chat-container">
+        <div class="decorative-shape"></div>
+        <div class="decorative-shape-2"></div>
+        
+        <div class="bear" id="bear-container">
+          <div class="bear-head">
+            <div class="bear-ear-left">
+              <div class="bear-ear-inner-left"></div>
+            </div>
+            <div class="bear-ear-right">
+              <div class="bear-ear-inner-right"></div>
+            </div>
+            <div class="bear-muzzle">
+              <div class="bear-nose"></div>
+              <div class="bear-mouth"></div>
+            </div>
+            <div class="eyes-container">
+              <div class="bear-eye-left" id="eye-left"></div>
+              <div class="bear-eye-right" id="eye-right"></div>
+            </div>
+          </div>
+        </div>
 
-    <div id="chat-box" style="border:1px solid #ccc; padding:10px; width:400px;">
-        {% for message in messages %}
-            {% if message.sender == 'bear' %}
-                <p><strong>Ted:</strong> {{ message.text }}</p>
-            {% else %}
-                <p><strong>You:</strong> {{ message.text }}</p>
-            {% endif %}
-        {% endfor %}
+        <div class="messages" id="messages">
+          {% for msg in messages %}
+            <div class="message {% if msg.sender == 'user' %}user{% else %}ted{% endif %}">
+              {{ msg.text }}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="input-container">
+        <input type="text" class="chat-input" id="chat-input" placeholder="Type your message...">
+        <button class="send-button" id="send-button">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 2L11 13"/>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Summarize Button -->
+      <button class="summarize-button" id="summarize-button">Summarize Conversation</button>
     </div>
+  </div>
 
-    <form method="POST" style="margin-top: 20px;">
-        {% csrf_token %}
-        <input type="text" name="user_message" placeholder="Type your message..." required>
-        <button type="submit">Send</button>
-    </form>
+  <script>
+    // Helper function to retrieve CSRF token from cookies
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const phoneContainer = document.getElementById('phone-container');
+      const bearContainer = document.getElementById('bear-container');
+      const eyeLeft = document.getElementById('eye-left');
+      const eyeRight = document.getElementById('eye-right');
+      const messagesDiv = document.getElementById('messages');
+      const chatInput = document.getElementById('chat-input');
+      const sendButton = document.getElementById('send-button');
+      const summarizeButton = document.getElementById('summarize-button');
+
+      // Eye movement logic
+      const getBearPosition = () => {
+        const bearRect = bearContainer.getBoundingClientRect();
+        const phoneRect = phoneContainer.getBoundingClientRect();
+        return {
+          x: bearRect.left + bearRect.width / 2 - phoneRect.left,
+          y: bearRect.top + bearRect.height / 2 - phoneRect.top
+        };
+      };
+
+      const maxEyeMove = 3;
+      const updateEyesPosition = (e) => {
+        const phoneRect = phoneContainer.getBoundingClientRect();
+        const cursorX = e.clientX - phoneRect.left;
+        const cursorY = e.clientY - phoneRect.top;
+        if (cursorX >= 0 && cursorX <= phoneRect.width && cursorY >= 0 && cursorY <= phoneRect.height) {
+          const bearPos = getBearPosition();
+          const dirX = cursorX - bearPos.x;
+          const dirY = cursorY - bearPos.y;
+          const distance = Math.sqrt(dirX * dirX + dirY * dirY);
+          const normX = dirX / distance;
+          const normY = dirY / distance;
+          const moveX = normX * Math.min(distance * 0.05, maxEyeMove);
+          const moveY = normY * Math.min(distance * 0.05, maxEyeMove);
+          eyeLeft.style.transform = `translate(${moveX}px, ${moveY}px)`;
+          eyeRight.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        }
+      };
+
+      document.addEventListener('mousemove', updateEyesPosition);
+      document.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        updateEyesPosition({ clientX: touch.clientX, clientY: touch.clientY });
+      }, { passive: false });
+
+      // Function to append messages
+      function appendMessage(sender, text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message ' + (sender === 'user' ? 'user' : 'ted');
+        msgDiv.textContent = text;
+        messagesDiv.appendChild(msgDiv);
+      }
+
+      // Send message via AJAX
+      function sendMessage() {
+        const text = chatInput.value.trim();
+        if (text) {
+          // Append user's message immediately
+          appendMessage('user', text);
+          chatInput.value = '';
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+          const formData = new FormData();
+          formData.append('user_message', text);
+
+          fetch("{% url 'chat_view' %}", {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken'),
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            // Clear messages and repopulate using the returned conversation
+            messagesDiv.innerHTML = '';
+            data.messages.forEach(msg => {
+              appendMessage(msg.sender, msg.text);
+            });
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+        }
+      }
+
+      sendButton.addEventListener('click', sendMessage);
+      chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+
+      // Summarize button – redirect to summary view
+      summarizeButton.addEventListener('click', () => {
+        window.location.href = "{% url 'summarize_view' %}";
+      });
+    });
+  </script>
 </body>
 </html>
