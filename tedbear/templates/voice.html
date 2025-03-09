@@ -7,6 +7,18 @@
   <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
   <title>Ted Voice Chat</title>
   <style>
+    .summarize-button {
+      width: 100%;
+      padding: 15px;
+      background-color: #8d6e63;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
     /* Voice-specific styles */
     .app-content {
       flex: 1;
@@ -219,11 +231,13 @@
             <div class="ring ring-3"></div>
           </div>
         </div>
+        <button class="summarize-button" id="summarize-button">Summarize Conversation</button>
+
       </div>
+
       </div>
 
       <!-- Summarize Conversation Button -->
-      <button class="summarize-button" id="summarize-button">Summarize Conversation</button>
     </div>
   </div>
   
