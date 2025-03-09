@@ -2,7 +2,10 @@ import json
 from django.shortcuts import render
 from django.http import JsonResponse
 from google import genai
+import tempfile
+import speech_recognition as sr
 import os
+from pydub import AudioSegment
 
 def home_view(request):
     return render(request, 'home.html')
@@ -19,17 +22,17 @@ def chat_view(request):
 
         # Build the prompt for the AI.
         engineered_prompt = (
-            """You are Ted, a friendly, empathetic therapy stuffed teddy bear. Please do not provide any actions, like asterisk actions.
-            Your role is to help users organize their thoughts, track their emotions, and provide a safe space for them to express themselves. 
-            Respond with empathy, ask clarifying questions, and avoid giving medical advice. 
-            If the user seems to be in distress, gently encourage them to seek professional help."""
+            "You are Ted, a friendly, empathetic therapy stuffed teddy bear. Please do not provide any actions, like asterisk actions. "
+            "Your role is to help users organize their thoughts, track their emotions, and provide a safe space for them to express themselves. "
+            "Respond with empathy, ask clarifying questions, and avoid giving medical advice. "
+            "If the user seems to be in distress, gently encourage them to seek professional help."
         )
         full_prompt = engineered_prompt + "\nUser: " + user_message + "\nTed:"
 
         api_key = os.environ.get("GENAI_API_KEY")
         if not api_key:
             conversation.append({
-                'sender': 'bear', 
+                'sender': 'bear',
                 'text': "Error: No GENAI_API_KEY found. Please configure your environment."
             })
         else:
@@ -43,7 +46,7 @@ def chat_view(request):
                 conversation.append({'sender': 'bear', 'text': ai_response})
             except Exception as e:
                 conversation.append({
-                    'sender': 'bear', 
+                    'sender': 'bear',
                     'text': f"An error occurred while communicating with Gemini: {e}"
                 })
 
@@ -98,3 +101,52 @@ def summarize_view(request):
     return render(request, 'summary.html', {
         'summary': summary_text
     })
+
+def voice_view(request):
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Retrieve the uploaded audio file from the request.
+        audio_file = request.FILES.get('audio')
+        if not audio_file:
+            return JsonResponse({'error': 'No audio file provided.'}, status=400)
+        
+        # Save the uploaded file to a temporary location.
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".tmp") as temp_file:
+            for chunk in audio_file.chunks():
+                temp_file.write(chunk)
+            temp_file_path = temp_file.name
+
+        # If the file is not already WAV, convert it using pydub.
+        if not audio_file.name.lower().endswith('.wav'):
+            try:
+                audio = AudioSegment.from_file(temp_file_path)
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as wav_temp:
+                    audio.export(wav_temp.name, format="wav")
+                    temp_audio_path = wav_temp.name
+            except Exception as e:
+                os.remove(temp_file_path)
+                return JsonResponse({'error': f'Error converting audio: {e}'}, status=500)
+            finally:
+                os.remove(temp_file_path)
+        else:
+            temp_audio_path = temp_file_path
+
+        recognizer = sr.Recognizer()
+        try:
+            # Open the temporary audio file using SpeechRecognition.
+            with sr.AudioFile(temp_audio_path) as source:
+                audio_data = recognizer.record(source)
+            # Use Google’s free recognition API.
+            transcription = recognizer.recognize_google(audio_data)
+        except sr.UnknownValueError:
+            transcription = "Sorry, I could not understand the audio."
+        except sr.RequestError as e:
+            transcription = f"Could not request results from the speech recognition service; {e}"
+        finally:
+            # Clean up the temporary WAV file.
+            if os.path.exists(temp_audio_path):
+                os.remove(temp_audio_path)
+        
+        return JsonResponse({'transcription': transcription})
+    else:
+        # For GET requests, render your voice chat template.
+        return render(request, 'voice.html')
