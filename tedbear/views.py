@@ -51,7 +51,7 @@ def chat_view(request):
         conversation.append({'sender': 'bear', 'text': resp})
 
         # Save the updated conversation to the session.
-        # request.session['conversation'] = conversation
+        request.session['conversation'] = conversation
 
         # Return JSON so that your JavaScript can process it.
         return JsonResponse({'messages': conversation})
@@ -197,13 +197,20 @@ from django.core.files.storage import default_storage
     
 def voice_view(request):
 
-    print("HELLO 1")
+    # Initialize the conversation from the session if it exists, otherwise start with an empty list.
+    conversation = request.session.get('conversation', [])
 
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
 
         transcription = speech_to_text()
         res = send_prompt_to_ai(transcription)
-        
+
+        conversation.append({'sender': 'user', 'text': transcription})
+        conversation.append({'sender': 'bear', 'text': res})
+
+        # Save the updated conversation to the session.
+        request.session['conversation'] = conversation
+
         return JsonResponse({'response': res})
     else:
         # For GET requests, render your voice chat template.
