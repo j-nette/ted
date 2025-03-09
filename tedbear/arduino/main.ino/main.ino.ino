@@ -18,6 +18,8 @@ int bot = 0;
 
 void setup() {
   Serial.begin(9600);
+
+  pinMode(13,OUTPUT);
    
   armL.attach(9);  
   armR.attach(10); 
@@ -35,20 +37,20 @@ void loop() {
           armR.write(top);
           break;
         case L:
-          armL.write(top);
+          armL.write(bot);
           break;
         case r:
           armR.write(bot);
           break;
         case l:
-          armL.write(bot);
-          break;
-        case U:
           armL.write(top);
-          armR.write(top);
           break;
         case D:
           armL.write(bot);
+          armR.write(top);
+          break;
+        case U:
+          armL.write(top);
           armR.write(bot);
           break;
         default:
