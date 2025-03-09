@@ -1,97 +1,35 @@
+import json
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import JsonResponse
 from google import genai
 import os
-import datetime
 
-INACTIVITY_THRESHOLD = datetime.timedelta(seconds=10)
+def home_view(request):
+    return render(request, 'home.html')
 
 def chat_view(request):
-    # Retrieve conversation data and conversation flag from session.
-    conversation = request.session.get("conversation", [])
-    conversation_started = request.session.get("conversation_started", False)
-    last_activity_iso = request.session.get("last_activity")
-    now = datetime.datetime.now()
+    # Initialize the conversation from the session if it exists, otherwise start with an empty list.
+    conversation = request.session.get('conversation', [])
 
-    # Check for inactivity and generate summary if needed.
-    if last_activity_iso:
-        last_activity = datetime.datetime.fromisoformat(last_activity_iso)
-        if now - last_activity > INACTIVITY_THRESHOLD and conversation:
-            summary_prompt = (
-                "The conversation has ended due to inactivity. Based on the following transcript, provide a summary that includes:\n"
-                "- Mood of the day\n"
-                "- General trend of mood throughout the week\n"
-                "- A summary of the conversation\n\n"
-                "Transcript:\n" + "\n".join([msg["text"] for msg in conversation])
-            )
-            api_key = os.environ.get("GENAI_API_KEY")
-            if api_key:
-                try:
-                    client = genai.Client(api_key=api_key)
-                    response = client.models.generate_content(
-                        model="gemini-2.0-flash",
-                        contents=summary_prompt
-                    )
-                    summary_text = response.text
-                    conversation.append({'sender': 'bear', 'text': "Summary:\n" + summary_text})
-                except Exception as e:
-                    conversation.append({
-                        'sender': 'bear',
-                        'text': f"An error occurred while generating the summary: {e}"
-                    })
-            else:
-                conversation.append({
-                    'sender': 'bear',
-                    'text': "Error: No GENAI_API_KEY found. Please configure your environment."
-                })
-            # Clear conversation and reset conversation flag.
-            conversation = []
-            conversation_started = False
-            request.session["conversation"] = conversation
-            request.session["conversation_started"] = conversation_started
-            request.session["last_activity"] = now.isoformat()
-            return render(request, 'chat.html', {'messages': conversation})
-
-    if request.method == 'POST':
+    # Handle AJAX POST request (from Fetch)
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Get the user message from the POST data.
         user_message = request.POST.get('user_message', '')
-
-        # If conversation hasn't started, enforce the trigger phrase.
-        if not conversation_started:
-            if "hey ted" not in user_message.lower():
-                conversation.append({
-                    'sender': 'bear',
-                    'text': "Please start your conversation with 'hey ted' to get a response."
-                })
-                request.session["conversation"] = conversation
-                return render(request, 'chat.html', {'messages': conversation})
-            else:
-                # Conversation is now started. Optionally, you could remove the trigger phrase from the message.
-                conversation_started = True
-                request.session["conversation_started"] = conversation_started
-
-        # Append the user's message.
         conversation.append({'sender': 'user', 'text': user_message})
-        # Update last activity timestamp.
-        request.session["last_activity"] = now.isoformat()
 
-        # Create an engineered prompt for Gemini.
+        # Build the prompt for the AI.
         engineered_prompt = (
-            """You are Ted, a friendly, empathetic therapy teddy bear. 
-You help the user organize their thoughts and track their emotional trends. 
-You converse naturally, asking clarifying questions if needed, and providing empathetic responses.
-At the end of the conversation, summarize the user based on what they said by: 
-- mood of the day
-- general trend of mood throughout the week
-- the conversation
-            """
+            """You are Ted, a friendly, empathetic therapy stuffed teddy bear. Please do not provide any actions, like asterisk actions.
+            Your role is to help users organize their thoughts, track their emotions, and provide a safe space for them to express themselves. 
+            Respond with empathy, ask clarifying questions, and avoid giving medical advice. 
+            If the user seems to be in distress, gently encourage them to seek professional help."""
         )
         full_prompt = engineered_prompt + "\nUser: " + user_message + "\nTed:"
 
-        # --- GEMINI INTEGRATION ---
         api_key = os.environ.get("GENAI_API_KEY")
         if not api_key:
             conversation.append({
-                'sender': 'bear',
+                'sender': 'bear', 
                 'text': "Error: No GENAI_API_KEY found. Please configure your environment."
             })
         else:
@@ -105,15 +43,58 @@ At the end of the conversation, summarize the user based on what they said by:
                 conversation.append({'sender': 'bear', 'text': ai_response})
             except Exception as e:
                 conversation.append({
-                    'sender': 'bear',
+                    'sender': 'bear', 
                     'text': f"An error occurred while communicating with Gemini: {e}"
                 })
 
-        # Save the updated conversation and conversation state.
-        request.session["conversation"] = conversation
+        # Save the updated conversation to the session.
+        request.session['conversation'] = conversation
 
-    return render(request, 'chat.html', {'messages': conversation})
+        # Return JSON so that your JavaScript can process it.
+        return JsonResponse({'messages': conversation})
 
+    # For GET requests (or non-AJAX POST), render the chat template.
+    return render(request, 'chat.html', {
+        'messages': conversation,
+        'conversation_history': json.dumps(conversation)
+    })
 
-def home_view(request):
-    return render(request, 'home.html')
+def summarize_view(request):
+    # Retrieve the conversation from the session.
+    conversation = request.session.get('conversation', [])
+
+    # Generate the summary prompt.
+    summary_prompt = (
+        "Provide a concise, bullet-point summary of the conversation for mental healthcare workers. "
+        "Do not bold it."
+        "Include:\n"
+        "- Emotional State: User's current mood and emotional tone.\n"
+        "- Key Themes: Main topics or concerns discussed.\n"
+        "- Stressors: Specific stressors or triggers mentioned.\n"
+        "- Coping: Coping strategies used or suggested.\n"
+        "- Follow-Up: Potential areas for follow-up or intervention.\n\n"
+        "Transcript:\n" + "\n".join([msg["text"] for msg in conversation])
+    )
+
+    # Generate the summary using the AI model.
+    api_key = os.environ.get("GENAI_API_KEY")
+    if api_key:
+        try:
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=summary_prompt
+            )
+            summary_text = response.text
+        except Exception as e:
+            summary_text = f"An error occurred while generating the summary: {e}"
+    else:
+        summary_text = "Error: No GENAI_API_KEY found. Please configure your environment."
+
+    # Clear the conversation from the session after summarization.
+    request.session['conversation'] = []
+
+    # Render the summary template.
+    return render(request, 'summary.html', {
+        'summary': summary_text
+    })
