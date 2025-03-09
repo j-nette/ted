@@ -42,13 +42,13 @@ def speech_to_text():
                     break
                 
                 # Check if there is silence for more than 5 seconds
-                if time.time() - last_speech_time > 5:
+                if time.time() - last_speech_time > 1:
                     print("Silence detected, stopping listen...")
                     break
 
             except sr.WaitTimeoutError:
                 # If no speech is detected during the listen timeout
-                if time.time() - last_speech_time > 5:
+                if time.time() - last_speech_time > 2:
                     print("Silence detected, stopping listen...")
                     break
                 continue
